@@ -23,9 +23,8 @@ Before running the system, please note the role of the following files:
 
 - `db_with_data.sql`: full PostgreSQL dump with schema, triggers, procedures, and sample data. This is the recommended file for reproducing the complete project.
 - `schema_final.sql`: schema-only version, useful if you want the database structure without sample data.
-- `db.js`: database connection configuration file. Please update the PostgreSQL username and password before starting the application.
+- `db.js`: database connection configuration file. 
 
-For most users, the easiest way to run the project is to import `db_with_data.sql`.
 
 ---
 
@@ -57,7 +56,7 @@ Finally, when an order reaches completed status, the database automatically upda
 ### ER Diagram
 
 <p align="center">
-  <img src="images/erd.png" alt="ER Diagram" width="950">
+  <img src="images/er d.png" alt="ER Diagram" width="950">
 </p>
 
 ---
