@@ -119,13 +119,13 @@ DECLARE
     r_mat      RECORD;
     v_stock    NUMERIC;
 BEGIN
-    -- 遍历该菜品的每种原材料
+    -- Iterate over each material for this product
     FOR r_mat IN
         SELECT pm.material_id, pm.required_quantity
         FROM   Product_Material pm
         WHERE  pm.product_id = p_product_id
     LOOP
-        -- 查该门店该原材料的可用库存总量
+        -- Query available stock for this material at this branch
         SELECT COALESCE(SUM(ib.remaining_quantity), 0)
         INTO   v_stock
         FROM   Inventory_Batch ib
@@ -135,7 +135,7 @@ BEGIN
           AND  pu.restaurant_id   = p_restaurant_id
           AND  ib.batch_status   NOT IN ('disposed', 'depleted');
 
-        -- 任意一种原材料不够一份 → 不可售
+        -- If any material insufficient for one serving -> unavailable
         IF v_stock < r_mat.required_quantity THEN
             RETURN 'temporarily_sold_out';
         END IF;
@@ -162,12 +162,12 @@ DECLARE
     v_deduct     NUMERIC;
     v_new_qty    NUMERIC;
 BEGIN
-    -- 只在 pending → confirmed 时触发
+    -- Only fires on pending -> confirmed transition
     IF OLD.order_status != 'pending' OR NEW.order_status != 'confirmed' THEN
         RETURN NEW;
     END IF;
 
-    -- 汇总这张订单每种原材料的总需求量
+    -- Sum total material requirements for this order
     FOR r_material IN
         SELECT pm.material_id,
                SUM(oi.quantity * pm.required_quantity) AS total_needed
@@ -178,7 +178,7 @@ BEGIN
     LOOP
         v_needed := r_material.total_needed;
 
-        -- FIFO：优先消耗最快过期 / 最早入库的批次
+        -- FIFO: consume earliest-expiring / oldest batches first
         FOR r_batch IN
             SELECT ib.batch_id, ib.remaining_quantity
             FROM   Inventory_Batch ib
@@ -203,7 +203,7 @@ BEGIN
             v_needed := ROUND(v_needed - v_deduct, 4);
         END LOOP;
 
-        -- 库存不足时记录警告（不阻断订单，如需阻断改成 RAISE EXCEPTION）
+        -- Log warning if stock insufficient (change to RAISE EXCEPTION to block)
         IF v_needed > 0 THEN
             RAISE WARNING 'Order % material % short by %',
                 NEW.order_id, r_material.material_id, v_needed;
@@ -267,19 +267,19 @@ CREATE FUNCTION public.fn_refresh_batch_status() RETURNS void
     LANGUAGE plpgsql
     AS $$
 BEGIN
-    -- 1. 剩余量为 0 → depleted
+    -- 1. remaining_quantity = 0 -> depleted
     UPDATE Inventory_Batch
     SET    batch_status = 'depleted'
     WHERE  remaining_quantity <= 0
       AND  batch_status NOT IN ('disposed', 'depleted');
 
-    -- 2. 已过期超过 3 天还没处理 → pending_disposal
+    -- 2. Expired more than 3 days ago -> pending_disposal
     UPDATE Inventory_Batch
     SET    batch_status = 'pending_disposal'
     WHERE  expiry_time < CURRENT_TIMESTAMP - INTERVAL '3 days'
       AND  batch_status NOT IN ('disposed', 'depleted', 'pending_disposal');
 
-    -- 3. 7 天内到期 → near_expiry
+    -- 3. Expiring within 7 days -> near_expiry
     UPDATE Inventory_Batch
     SET    batch_status = 'near_expiry'
     WHERE  expiry_time BETWEEN CURRENT_TIMESTAMP
@@ -287,7 +287,7 @@ BEGIN
       AND  remaining_quantity > 0
       AND  batch_status NOT IN ('disposed', 'depleted', 'pending_disposal');
 
-    -- 4. 其余有库存、未过期 → available
+    -- 4. In stock and not expiring soon -> available
     UPDATE Inventory_Batch
     SET    batch_status = 'available'
     WHERE  remaining_quantity > 0
@@ -313,7 +313,7 @@ BEGIN
     FOR r_offer IN
         SELECT product_id FROM Offers
         WHERE  restaurant_id      = p_restaurant_id
-          AND  availability_status != 'unavailable'   -- 手动下架的不自动改回来
+          AND  availability_status != 'unavailable'   -- skip manually unlisted products, do not auto-restore
     LOOP
         v_status := fn_check_offer_availability(p_restaurant_id, r_offer.product_id);
 
@@ -336,18 +336,18 @@ CREATE FUNCTION public.fn_trigger_refresh_batch_status() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
-    -- 归零 → depleted
+    -- Zero remaining -> depleted
     IF NEW.remaining_quantity <= 0
        AND NEW.batch_status NOT IN ('disposed', 'depleted') THEN
         NEW.batch_status := 'depleted';
 
-    -- 已过期超 3 天 → pending_disposal
+    -- Expired over 3 days -> pending_disposal
     ELSIF NEW.expiry_time IS NOT NULL
       AND NEW.expiry_time < CURRENT_TIMESTAMP - INTERVAL '3 days'
       AND NEW.batch_status NOT IN ('disposed', 'depleted', 'pending_disposal') THEN
         NEW.batch_status := 'pending_disposal';
 
-    -- 7 天内到期 → near_expiry
+    -- Expiring within 7 days -> near_expiry
     ELSIF NEW.expiry_time IS NOT NULL
       AND NEW.expiry_time BETWEEN CURRENT_TIMESTAMP
                                AND CURRENT_TIMESTAMP + INTERVAL '7 days'
@@ -355,7 +355,7 @@ BEGIN
       AND NEW.batch_status NOT IN ('disposed', 'depleted', 'pending_disposal') THEN
         NEW.batch_status := 'near_expiry';
 
-    -- 正常 → available
+    -- Normal -> available
     ELSIF NEW.remaining_quantity > 0
       AND (NEW.expiry_time IS NULL
            OR NEW.expiry_time > CURRENT_TIMESTAMP + INTERVAL '7 days')
@@ -380,7 +380,7 @@ CREATE FUNCTION public.fn_trigger_refresh_offers_on_batch() RETURNS trigger
 DECLARE
     v_restaurant_id INTEGER;
 BEGIN
-    -- 找到这个批次属于哪家门店
+    -- Find which branch this batch belongs to
     SELECT pu.restaurant_id INTO v_restaurant_id
     FROM   Purchase_Item pi
     JOIN   Purchase      pu ON pu.purchase_id = pi.purchase_id
@@ -438,7 +438,7 @@ DECLARE
     v_price          NUMERIC;
     v_subtotal       NUMERIC;
 BEGIN
-    -- 1. 查会员卡
+    -- 1. Look up membership card
     SELECT card_id, points_balance
     INTO   v_card_id, v_card_points
     FROM   Membership_Card
@@ -446,7 +446,7 @@ BEGIN
       AND  card_status = 'active'
     LIMIT  1;
 
-    -- 2. 计算订单总金额
+    -- 2. Calculate order total
     FOR v_item IN SELECT * FROM jsonb_array_elements(p_items) LOOP
         v_product_id := (v_item->>'product_id')::INTEGER;
         v_quantity   := (v_item->>'quantity')::INTEGER;
@@ -455,7 +455,7 @@ BEGIN
         v_total := v_total + v_price * v_quantity;
     END LOOP;
 
-    -- 3. 计算积分抵扣
+    -- 3. Calculate points deduction
     v_actual_points   := LEAST(COALESCE(p_points_to_use, 0), COALESCE(v_card_points, 0));
     v_deduction       := ROUND(v_actual_points / 10.0, 2);
     v_max_deduction   := ROUND(v_total * 0.2, 2);
@@ -464,7 +464,7 @@ BEGIN
     v_final_amount    := ROUND(v_total - v_final_deduction, 2);
     v_points_earned   := FLOOR(v_final_amount / 10)::INTEGER;
 
-    -- 4. 插入 Order
+    -- 4. Insert Order row
     INSERT INTO "Order" (
         customer_id, restaurant_id, platform_id, card_id,
         order_type, order_status,
@@ -478,7 +478,7 @@ BEGIN
         v_actual_points, v_points_earned, v_final_deduction
     ) RETURNING order_id INTO p_order_id;
 
-    -- 5. 插入 Order_Item
+    -- 5. Insert Order_Item rows
     FOR v_item IN SELECT * FROM jsonb_array_elements(p_items) LOOP
         v_product_id := (v_item->>'product_id')::INTEGER;
         v_quantity   := (v_item->>'quantity')::INTEGER;
@@ -490,7 +490,7 @@ BEGIN
         VALUES (p_order_id, v_product_id, v_quantity, v_price, v_subtotal);
     END LOOP;
 
-    -- 6. 扣减积分余额（points_used 在下单时先扣，earned 在 completed 时加）
+    -- 6. Deduct points (points_used deducted now, points_earned added on completion)
     IF v_card_id IS NOT NULL AND v_actual_points > 0 THEN
         UPDATE Membership_Card
         SET    points_balance = points_balance - v_actual_points
