@@ -1,0 +1,184 @@
+<%- include('../partials/header') %>
+<a href="/orders">← Back</a>
+<h1>New Order</h1>
+<% if (error) { %><div class="alert"><%= error %></div><% } %>
+<div class="form-card" style="max-width:700px">
+  <form method="POST" action="/orders" id="orderForm">
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+      <div class="form-group">
+        <label>Customer</label>
+        <select name="customer_id" id="customerSelect" required>
+          <% customers.forEach(c => { %>
+          <option value="<%= c.customer_id %>"
+                  data-points="<%= c.points_balance || 0 %>"
+                  data-card="<%= c.card_level || '' %>">
+            <%= c.customer_name %><%= c.card_level ? ` (${c.card_level}, ${c.points_balance} pts)` : '' %>
+          </option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Restaurant</label>
+        <select name="restaurant_id" required>
+          <% restaurants.forEach(r => { %>
+          <option value="<%= r.restaurant_id %>"><%= r.restaurant_name %></option>
+          <% }) %>
+        </select>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+      <div class="form-group">
+        <label>Order Type</label>
+        <select name="order_type" id="orderType" required>
+          <option value="dine_in">Dine In</option>
+          <option value="takeout">Takeout</option>
+          <option value="delivery">Delivery</option>
+        </select>
+      </div>
+      <div class="form-group" id="platformGroup" style="display:none">
+        <label>Delivery Platform</label>
+        <select name="platform_id">
+          <% platforms.forEach(p => { %>
+          <option value="<%= p.platform_id %>"><%= p.platform_name %></option>
+          <% }) %>
+        </select>
+      </div>
+    </div>
+
+    <h2 style="margin:1.5rem 0 1rem">Items</h2>
+    <div id="items">
+      <div class="order-item" style="display:grid;grid-template-columns:3fr 1fr auto;gap:8px;margin-bottom:8px;align-items:end">
+        <div class="form-group" style="margin:0">
+          <label>Product</label>
+          <select name="product_id" required>
+            <% products.forEach(p => { %>
+            <option value="<%= p.product_id %>" data-price="<%= p.price %>">
+              <%= p.product_name %> — €<%= p.price %> (<%= p.category %>)
+            </option>
+            <% }) %>
+          </select>
+        </div>
+        <div class="form-group" style="margin:0">
+          <label>Qty</label>
+          <input type="number" name="quantity" min="1" value="1" required>
+        </div>
+        <div style="padding-bottom:2px">
+          <button type="button" class="btn btn-danger btn-sm remove-item" style="display:none">✕</button>
+        </div>
+      </div>
+    </div>
+    <button type="button" class="btn" style="background:#555;margin-bottom:1.5rem" id="addItem">+ Add Item</button>
+
+    <!-- 积分抵扣区块 -->
+    <div id="pointsSection" style="display:none;border-top:0.5px solid #eee;padding-top:1rem;margin-bottom:1.5rem">
+      <p style="font-size:13px;color:#555;margin-bottom:0.8rem">
+        Membership card detected — <strong id="availablePoints">0</strong> pts available
+        <span style="color:#888">（10 pts = €1, max 20% of order total）</span>
+      </p>
+      <div style="display:flex;gap:8px;align-items:center">
+        <label style="font-size:13px;color:#555;white-space:nowrap">Use points:</label>
+        <input type="number" name="points_to_use" id="pointsInput"
+               min="0" value="0" step="10"
+               style="width:120px;padding:7px 10px;border:0.5px solid #ccc;border-radius:6px;font-size:14px">
+        <span style="font-size:13px;color:#2d7a3a">→ deduct <strong id="deductDisplay">€0.00</strong></span>
+      </div>
+    </div>
+
+    <!-- 价格汇总 -->
+    <div style="background:var(--color-background-secondary,#f8f8f8);border-radius:8px;padding:12px 16px;margin-bottom:1.5rem;font-size:14px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+        <span style="color:#555">Subtotal</span>
+        <strong id="totalDisplay">€0.00</strong>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px" id="deductRow" style="display:none">
+        <span style="color:#2d7a3a">Points deduction</span>
+        <strong id="deductRow2" style="color:#2d7a3a">-€0.00</strong>
+      </div>
+      <div style="display:flex;justify-content:space-between;border-top:0.5px solid #ddd;padding-top:6px;margin-top:4px">
+        <span style="font-weight:500">Final Total</span>
+        <strong id="finalDisplay">€0.00</strong>
+      </div>
+    </div>
+
+    <button type="submit" class="btn">Place Order</button>
+  </form>
+</div>
+
+<script>
+const orderType     = document.getElementById('orderType');
+const platformGroup = document.getElementById('platformGroup');
+const customerSel   = document.getElementById('customerSelect');
+const pointsSec     = document.getElementById('pointsSection');
+const pointsInput   = document.getElementById('pointsInput');
+const availPts      = document.getElementById('availablePoints');
+
+orderType.addEventListener('change', () => {
+  platformGroup.style.display = orderType.value === 'delivery' ? 'block' : 'none';
+});
+
+function getCustomerPoints() {
+  const opt = customerSel.selectedOptions[0];
+  return parseInt(opt?.dataset.points || 0);
+}
+
+function hasCard() {
+  const opt = customerSel.selectedOptions[0];
+  return !!(opt?.dataset.card);
+}
+
+function updateSummary() {
+  let subtotal = 0;
+  document.querySelectorAll('.order-item').forEach(row => {
+    const sel   = row.querySelector('select[name="product_id"]');
+    const qty   = row.querySelector('input[name="quantity"]');
+    const price = parseFloat(sel?.selectedOptions[0]?.dataset.price || 0);
+    subtotal   += price * parseInt(qty?.value || 0);
+  });
+
+  const pts         = Math.max(0, parseInt(pointsInput.value) || 0);
+  const maxPts      = getCustomerPoints();
+  const actual      = Math.min(pts, maxPts);
+  const deduction   = Math.min(actual / 10, subtotal * 0.2);
+  const final       = Math.max(0, subtotal - deduction);
+
+  document.getElementById('totalDisplay').textContent  = '€' + subtotal.toFixed(2);
+  document.getElementById('deductDisplay').textContent = '€' + deduction.toFixed(2);
+  document.getElementById('deductRow2').textContent    = '-€' + deduction.toFixed(2);
+  document.getElementById('finalDisplay').textContent  = '€' + final.toFixed(2);
+  document.getElementById('deductRow').style.display   = deduction > 0 ? 'flex' : 'none';
+}
+
+customerSel.addEventListener('change', () => {
+  const show = hasCard();
+  pointsSec.style.display = show ? 'block' : 'none';
+  availPts.textContent    = getCustomerPoints();
+  pointsInput.max         = getCustomerPoints();
+  pointsInput.value       = 0;
+  updateSummary();
+});
+
+pointsInput.addEventListener('input', updateSummary);
+document.getElementById('items').addEventListener('change', updateSummary);
+document.getElementById('items').addEventListener('input', updateSummary);
+
+// 初始化
+customerSel.dispatchEvent(new Event('change'));
+updateSummary();
+
+const itemsDiv = document.getElementById('items');
+const firstRow = itemsDiv.querySelector('.order-item');
+
+document.getElementById('addItem').addEventListener('click', () => {
+  const clone = firstRow.cloneNode(true);
+  clone.querySelector('input[name="quantity"]').value = 1;
+  clone.querySelector('.remove-item').style.display = 'inline-block';
+  clone.querySelector('.remove-item').addEventListener('click', () => {
+    clone.remove(); updateSummary();
+  });
+  itemsDiv.appendChild(clone);
+  updateSummary();
+});
+</script>
+<%- include('../partials/footer') %>

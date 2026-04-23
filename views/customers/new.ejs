@@ -1,0 +1,47 @@
+<%- include('../partials/header') %>
+<a href="/customers">← Back</a>
+<h1>Add New Customer</h1>
+<% if (error) { %><div class="alert"><%= error %></div><% } %>
+<div class="form-card">
+  <form method="POST" action="/customers">
+    <div class="form-group">
+      <label>Name</label>
+      <input type="text" name="customer_name" required placeholder="e.g. Alice Wang">
+    </div>
+    <div class="form-group">
+      <label>Phone</label>
+      <input type="text" name="phone" placeholder="e.g. 138-0000-0001">
+    </div>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" name="email" placeholder="e.g. alice@example.com">
+    </div>
+
+    <div style="border-top:0.5px solid #eee;margin:1rem 0;padding-top:1rem">
+      <label style="display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer">
+        <input type="checkbox" name="issue_card" value="yes" id="issueCard">
+        Issue a membership card now
+      </label>
+    </div>
+
+    <div id="cardOptions" style="display:none">
+      <div class="form-group">
+        <label>Card Level</label>
+        <select name="card_level">
+          <option value="silver">Silver</option>
+          <option value="gold">Gold</option>
+          <option value="platinum">Platinum</option>
+        </select>
+      </div>
+    </div>
+
+    <button type="submit" class="btn">Save Customer</button>
+  </form>
+</div>
+
+<script>
+document.getElementById('issueCard').addEventListener('change', function() {
+  document.getElementById('cardOptions').style.display = this.checked ? 'block' : 'none';
+});
+</script>
+<%- include('../partials/footer') %>

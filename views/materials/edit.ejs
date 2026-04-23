@@ -1,0 +1,22 @@
+<%- include('../partials/header') %>
+<a href="/materials">← Back</a>
+<h1>Edit: <%= material.material_name %></h1>
+<% if (error) { %><div class="alert"><%= error %></div><% } %>
+<div class="form-card">
+  <form method="POST" action="/materials/<%= material.material_id %>/edit">
+    <div class="form-group">
+      <label>Material Name</label>
+      <input type="text" name="material_name" value="<%= material.material_name %>" required>
+    </div>
+    <div class="form-group">
+      <label>Unit</label>
+      <select name="unit">
+        <% ['kg','g','L','ml','pcs'].forEach(u => { %>
+        <option value="<%= u %>" <%= material.unit === u ? 'selected' : '' %>><%= u %></option>
+        <% }) %>
+      </select>
+    </div>
+    <button type="submit" class="btn">Save Changes</button>
+  </form>
+</div>
+<%- include('../partials/footer') %>

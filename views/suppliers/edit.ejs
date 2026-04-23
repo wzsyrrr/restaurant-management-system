@@ -1,0 +1,22 @@
+<%- include('../partials/header') %>
+<a href="/suppliers">← Back</a>
+<h1>Edit: <%= supplier.supplier_name %></h1>
+<% if (error) { %><div class="alert"><%= error %></div><% } %>
+<div class="form-card">
+  <form method="POST" action="/suppliers/<%= supplier.supplier_id %>/edit">
+    <div class="form-group">
+      <label>Supplier Name</label>
+      <input type="text" name="supplier_name" value="<%= supplier.supplier_name %>" required>
+    </div>
+    <div class="form-group">
+      <label>Contact Person</label>
+      <input type="text" name="contact_person" value="<%= supplier.contact_person || '' %>">
+    </div>
+    <div class="form-group">
+      <label>Phone</label>
+      <input type="text" name="phone" value="<%= supplier.phone || '' %>">
+    </div>
+    <button type="submit" class="btn">Save Changes</button>
+  </form>
+</div>
+<%- include('../partials/footer') %>

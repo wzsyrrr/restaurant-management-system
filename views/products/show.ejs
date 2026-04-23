@@ -1,0 +1,27 @@
+<%- include('../partials/header') %>
+<a href="/products">← Back</a>
+<h1><%= product.product_name %></h1>
+<div class="detail-card">
+  <p><strong>Category:</strong> <%= product.category %></p>
+  <p><strong>Price:</strong> €<%= product.price %></p>
+  <p><strong>Listing:</strong> <span class="badge badge-<%= product.listing_status %>"><%= product.listing_status %></span></p>
+</div>
+<h2>Required Materials (per serving)</h2>
+<table>
+  <thead><tr><th>Material</th><th>Quantity</th><th>Unit</th></tr></thead>
+  <tbody>
+    <% materials.forEach(m => { %>
+    <tr><td><%= m.material_name %></td><td><%= m.required_quantity %></td><td><%= m.unit %></td></tr>
+    <% }) %>
+  </tbody>
+</table>
+<h2>Store Availability</h2>
+<table>
+  <thead><tr><th>Restaurant</th><th>Status</th></tr></thead>
+  <tbody>
+    <% offers.forEach(o => { %>
+    <tr><td><%= o.restaurant_name %></td><td><span class="badge badge-<%= o.availability_status %>"><%= o.availability_status %></span></td></tr>
+    <% }) %>
+  </tbody>
+</table>
+<%- include('../partials/footer') %>

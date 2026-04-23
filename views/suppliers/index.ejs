@@ -1,0 +1,30 @@
+<%- include('../partials/header') %>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+  <h1 style="margin:0">Suppliers</h1>
+  <a href="/suppliers/new" class="btn">+ Add Supplier</a>
+</div>
+<% if (locals.error) { %><div class="alert"><%= error %></div><% } %>
+<table>
+  <thead>
+    <tr><th>ID</th><th>Name</th><th>Contact Person</th><th>Phone</th><th>Purchases</th><th>Actions</th></tr>
+  </thead>
+  <tbody>
+    <% suppliers.forEach(s => { %>
+    <tr>
+      <td><%= s.supplier_id %></td>
+      <td><%= s.supplier_name %></td>
+      <td><%= s.contact_person || '-' %></td>
+      <td><%= s.phone || '-' %></td>
+      <td><%= s.purchase_count %></td>
+      <td>
+        <a href="/suppliers/<%= s.supplier_id %>/edit" class="btn btn-sm">Edit</a>
+        <form method="POST" action="/suppliers/<%= s.supplier_id %>/delete" style="display:inline"
+              onsubmit="return confirm('Delete <%= s.supplier_name %>?')">
+          <button class="btn btn-sm btn-danger" type="submit">Delete</button>
+        </form>
+      </td>
+    </tr>
+    <% }) %>
+  </tbody>
+</table>
+<%- include('../partials/footer') %>

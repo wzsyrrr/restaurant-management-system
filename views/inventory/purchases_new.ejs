@@ -1,0 +1,84 @@
+<%- include('../partials/header') %>
+<a href="/inventory/purchases">← Back</a>
+<h1>New Purchase Order</h1>
+<% if (error) { %><div class="alert"><%= error %></div><% } %>
+<div class="form-card" style="max-width:700px">
+  <form method="POST" action="/inventory/purchases" id="purchaseForm">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+      <div class="form-group">
+        <label>Restaurant</label>
+        <select name="restaurant_id" required>
+          <% restaurants.forEach(r => { %>
+          <option value="<%= r.restaurant_id %>"><%= r.restaurant_name %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Supplier</label>
+        <select name="supplier_id" required>
+          <% suppliers.forEach(s => { %>
+          <option value="<%= s.supplier_id %>"><%= s.supplier_name %></option>
+          <% }) %>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Status</label>
+      <select name="purchase_status">
+        <option value="pending">Pending</option>
+        <option value="confirmed">Confirmed</option>
+        <option value="delivered" selected>Delivered (auto-creates inventory)</option>
+        <option value="cancelled">Cancelled</option>
+      </select>
+    </div>
+
+    <h2 style="margin:1.5rem 0 1rem">Line Items</h2>
+    <div id="items">
+      <div class="line-item" style="display:grid;grid-template-columns:2fr 1fr 1fr 1.5fr auto;gap:8px;margin-bottom:8px;align-items:end">
+        <div class="form-group" style="margin:0">
+          <label>Material</label>
+          <select name="material_id" required>
+            <% materials.forEach(m => { %>
+            <option value="<%= m.material_id %>"><%= m.material_name %> (<%= m.unit %>)</option>
+            <% }) %>
+          </select>
+        </div>
+        <div class="form-group" style="margin:0">
+          <label>Qty</label>
+          <input type="number" name="quantity" step="0.01" min="0.01" required placeholder="e.g. 50">
+        </div>
+        <div class="form-group" style="margin:0">
+          <label>Unit Price</label>
+          <input type="number" name="unit_price" step="0.01" min="0" required placeholder="e.g. 30">
+        </div>
+        <div class="form-group" style="margin:0">
+          <label>Expiry Date</label>
+          <input type="date" name="expiry_time">
+        </div>
+        <div style="padding-bottom:2px">
+          <button type="button" class="btn btn-danger btn-sm remove-row" style="display:none">✕</button>
+        </div>
+      </div>
+    </div>
+
+    <button type="button" class="btn" style="background:#555;margin-bottom:1.5rem" id="addRow">+ Add Item</button>
+    <br>
+    <button type="submit" class="btn">Submit Purchase</button>
+  </form>
+</div>
+
+<script>
+const itemsDiv = document.getElementById('items');
+const firstRow = itemsDiv.querySelector('.line-item');
+
+document.getElementById('addRow').addEventListener('click', () => {
+  const clone = firstRow.cloneNode(true);
+  clone.querySelectorAll('input').forEach(i => i.value = '');
+  clone.querySelector('.remove-row').style.display = 'inline-block';
+  clone.querySelector('.remove-row').addEventListener('click', () => clone.remove());
+  itemsDiv.appendChild(clone);
+});
+
+firstRow.querySelector('.remove-row').addEventListener('click', () => firstRow.remove());
+</script>
+<%- include('../partials/footer') %>

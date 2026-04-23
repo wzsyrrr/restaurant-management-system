@@ -1,0 +1,28 @@
+<%- include('../partials/header') %>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+  <h1 style="margin:0">Purchases</h1>
+  <div style="display:flex;gap:8px">
+    <a href="/inventory" class="btn" style="background:#555">← Inventory</a>
+    <a href="/inventory/purchases/new" class="btn">+ New Purchase</a>
+  </div>
+</div>
+<% if (locals.error) { %><div class="alert"><%= error %></div><% } %>
+<table>
+  <thead>
+    <tr><th>ID</th><th>Date</th><th>Restaurant</th><th>Supplier</th><th>Items</th><th>Total</th><th>Status</th></tr>
+  </thead>
+  <tbody>
+    <% purchases.forEach(p => { %>
+    <tr>
+      <td><a href="/inventory/purchases/<%= p.purchase_id %>">#<%= p.purchase_id %></a></td>
+      <td><%= p.date %></td>
+      <td><%= p.restaurant_name %></td>
+      <td><%= p.supplier_name %></td>
+      <td><%= p.line_items %></td>
+      <td>€<%= parseFloat(p.total_amount).toFixed(2) %></td>
+      <td><span class="badge badge-<%= p.purchase_status %>"><%= p.purchase_status %></span></td>
+    </tr>
+    <% }) %>
+  </tbody>
+</table>
+<%- include('../partials/footer') %>

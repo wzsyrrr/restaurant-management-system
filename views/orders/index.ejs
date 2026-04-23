@@ -1,0 +1,26 @@
+<%- include('../partials/header') %>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+  <h1 style="margin:0">Orders</h1>
+  <a href="/orders/new" class="btn">+ New Order</a>
+</div>
+<table>
+  <thead>
+    <tr><th>ID</th><th>Customer</th><th>Restaurant</th><th>Type</th><th>Platform</th><th>Status</th><th>Total</th><th>Final</th><th>Date</th></tr>
+  </thead>
+  <tbody>
+    <% orders.forEach(o => { %>
+    <tr>
+      <td><a href="/orders/<%= o.order_id %>"><%= o.order_id %></a></td>
+      <td><%= o.customer_name %></td>
+      <td><%= o.restaurant_name %></td>
+      <td><%= o.order_type %></td>
+      <td><%= o.platform_name || '-' %></td>
+      <td><span class="badge badge-<%= o.order_status %>"><%= o.order_status %></span></td>
+      <td>€<%= o.total_amount %></td>
+      <td>€<%= o.final_amount %></td>
+      <td><%= new Date(o.order_time).toLocaleDateString() %></td>
+    </tr>
+    <% }) %>
+  </tbody>
+</table>
+<%- include('../partials/footer') %>

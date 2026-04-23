@@ -1,0 +1,33 @@
+<%- include('../partials/header') %>
+<a href="/products/<%= product.product_id %>">← Back</a>
+<h1>Edit: <%= product.product_name %></h1>
+<% if (error) { %><div class="alert"><%= error %></div><% } %>
+<div class="form-card">
+  <form method="POST" action="/products/<%= product.product_id %>/edit">
+    <div class="form-group">
+      <label>Product Name</label>
+      <input type="text" name="product_name" value="<%= product.product_name %>" required>
+    </div>
+    <div class="form-group">
+      <label>Price (€)</label>
+      <input type="number" name="price" step="0.01" min="0" value="<%= product.price %>" required>
+    </div>
+    <div class="form-group">
+      <label>Category</label>
+      <select name="category">
+        <% ['Main','Side','Dessert','Drink'].forEach(c => { %>
+        <option value="<%= c %>" <%= product.category === c ? 'selected' : '' %>><%= c %></option>
+        <% }) %>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Listing Status</label>
+      <select name="listing_status">
+        <option value="listed"   <%= product.listing_status === 'listed'   ? 'selected' : '' %>>Listed</option>
+        <option value="unlisted" <%= product.listing_status === 'unlisted' ? 'selected' : '' %>>Unlisted</option>
+      </select>
+    </div>
+    <button type="submit" class="btn">Save Changes</button>
+  </form>
+</div>
+<%- include('../partials/footer') %>

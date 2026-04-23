@@ -1,0 +1,75 @@
+<%- include('../partials/header') %>
+<a href="/inventory/purchases">← Back to Purchases</a>
+<h1>Purchase #<%= purchase.purchase_id %></h1>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem">
+  <div class="detail-card">
+    <p><strong>Restaurant:</strong> <%= purchase.restaurant_name %></p>
+    <p><strong>Date:</strong> <%= new Date(purchase.purchase_time).toLocaleDateString('en-GB') %></p>
+    <p><strong>Status:</strong> <span class="badge badge-<%= purchase.purchase_status %>"><%= purchase.purchase_status %></span></p>
+    <p><strong>Total:</strong> €<%= parseFloat(purchase.total_amount).toFixed(2) %></p>
+  </div>
+  <div class="detail-card">
+    <p><strong>Supplier:</strong> <%= purchase.supplier_name %></p>
+    <p><strong>Contact:</strong> <%= purchase.contact_person || '-' %></p>
+    <p><strong>Phone:</strong> <%= purchase.phone || '-' %></p>
+  </div>
+</div>
+
+<% if (purchase.purchase_status !== 'delivered' && purchase.purchase_status !== 'cancelled') { %>
+<div style="display:flex;gap:8px;margin-bottom:1.5rem;flex-wrap:wrap">
+  <% const flow = { pending: 'confirmed', confirmed: 'delivered' }; %>
+  <% const next = flow[purchase.purchase_status]; %>
+  <% if (next) { %>
+  <form method="POST" action="/inventory/purchases/<%= purchase.purchase_id %>/status">
+    <input type="hidden" name="status" value="<%= next %>">
+    <button class="btn" type="submit">
+      → Mark as <%= next %><%= next === 'delivered' ? ' (auto-creates inventory)' : '' %>
+    </button>
+  </form>
+  <% } %>
+  <form method="POST" action="/inventory/purchases/<%= purchase.purchase_id %>/status"
+        onsubmit="return confirm('Cancel this purchase?')">
+    <input type="hidden" name="status" value="cancelled">
+    <button class="btn btn-danger" type="submit">Cancel Purchase</button>
+  </form>
+</div>
+<% } %>
+
+<h2>Line Items</h2>
+<table>
+  <thead>
+    <tr>
+      <th>Material</th><th>Unit</th><th>Qty</th>
+      <th>Unit Price</th><th>Subtotal</th>
+      <th>Batch</th><th>Batch Status</th><th>Remaining</th><th>Expiry</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% items.forEach(i => { %>
+    <tr>
+      <td><%= i.material_name %></td>
+      <td><%= i.unit %></td>
+      <td><%= i.quantity %></td>
+      <td>€<%= parseFloat(i.unit_price).toFixed(2) %></td>
+      <td>€<%= parseFloat(i.subtotal).toFixed(2) %></td>
+      <td><%= i.batch_id || '-' %></td>
+      <td>
+        <% if (i.batch_status) { %>
+          <span class="badge badge-<%= i.batch_status %>"><%= i.batch_status %></span>
+        <% } else { %>-<% } %>
+      </td>
+      <td><%= i.remaining_quantity != null ? i.remaining_quantity : '-' %></td>
+      <td><%= i.expiry_date || '-' %></td>
+    </tr>
+    <% }) %>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="4" style="text-align:right;font-weight:500;padding:10px 14px">Total</td>
+      <td style="font-weight:500;padding:10px 14px">€<%= parseFloat(purchase.total_amount).toFixed(2) %></td>
+      <td colspan="4"></td>
+    </tr>
+  </tfoot>
+</table>
+<%- include('../partials/footer') %>

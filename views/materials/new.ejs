@@ -1,0 +1,24 @@
+<%- include('../partials/header') %>
+<a href="/materials">← Back</a>
+<h1>Add New Material</h1>
+<% if (error) { %><div class="alert"><%= error %></div><% } %>
+<div class="form-card">
+  <form method="POST" action="/materials">
+    <div class="form-group">
+      <label>Material Name</label>
+      <input type="text" name="material_name" required placeholder="e.g. Salmon Fillet">
+    </div>
+    <div class="form-group">
+      <label>Unit</label>
+      <select name="unit">
+        <option value="kg">kg</option>
+        <option value="g">g</option>
+        <option value="L">L</option>
+        <option value="ml">ml</option>
+        <option value="pcs">pcs</option>
+      </select>
+    </div>
+    <button type="submit" class="btn">Save Material</button>
+  </form>
+</div>
+<%- include('../partials/footer') %>

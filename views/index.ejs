@@ -1,0 +1,9 @@
+<%- include('partials/header') %>
+<h1>Dashboard</h1>
+<div class="stats">
+  <div class="stat-card"><span class="stat-number"><%= customerCount %></span><span class="stat-label">Customers</span></div>
+  <div class="stat-card"><span class="stat-number"><%= orderCount %></span><span class="stat-label">Orders</span></div>
+  <div class="stat-card"><span class="stat-number"><%= productCount %></span><span class="stat-label">Products Listed</span></div>
+  <div class="stat-card"><span class="stat-number"><%= batchCount %></span><span class="stat-label">Active Batches</span></div>
+</div>
+<%- include('partials/footer') %>

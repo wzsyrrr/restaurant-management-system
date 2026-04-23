@@ -1,0 +1,83 @@
+<%- include('../partials/header') %>
+<a href="/customers">← Back</a>
+<h1><%= customer.customer_name %></h1>
+
+<div class="detail-card">
+  <p><strong>Phone:</strong> <%= customer.phone || '-' %></p>
+  <p><strong>Email:</strong> <%= customer.email || '-' %></p>
+</div>
+
+<h2>Membership Card</h2>
+<% if (!card) { %>
+  <div class="form-card" style="margin-bottom:1.5rem">
+    <p style="margin-bottom:1rem;color:#555;font-size:14px">No membership card yet.</p>
+    <form method="POST" action="/customers/<%= customer.customer_id %>/card/new" style="display:flex;gap:8px;align-items:center">
+      <select name="card_level" style="padding:7px 10px;border:0.5px solid #ccc;border-radius:6px;font-size:14px">
+        <option value="silver">Silver</option>
+        <option value="gold">Gold</option>
+        <option value="platinum">Platinum</option>
+      </select>
+      <button class="btn" type="submit">Issue Card</button>
+    </form>
+  </div>
+<% } else { %>
+  <div class="detail-card" style="margin-bottom:1rem">
+    <p><strong>Level:</strong> <span class="badge badge-<%= card.card_level %>"><%= card.card_level %></span></p>
+    <p><strong>Points Balance:</strong> <span style="font-size:20px;font-weight:500"><%= card.points_balance %></span> pts</p>
+    <p><strong>Issued:</strong> <%= card.issue_date %></p>
+    <p><strong>Status:</strong> <span class="badge badge-<%= card.card_status %>"><%= card.card_status %></span></p>
+  </div>
+
+  <div style="display:flex;gap:8px;margin-bottom:1.5rem;flex-wrap:wrap">
+    <form method="POST" action="/customers/<%= customer.customer_id %>/card/toggle">
+      <button class="btn btn-warning" type="submit">
+        <%= card.card_status === 'active' ? 'Freeze Card' : 'Unfreeze Card' %>
+      </button>
+    </form>
+    <form method="POST" action="/customers/<%= customer.customer_id %>/card/upgrade"
+          style="display:flex;gap:6px;align-items:center">
+      <select name="card_level" style="padding:7px 10px;border:0.5px solid #ccc;border-radius:6px;font-size:14px">
+        <option value="silver"   <%= card.card_level==='silver'   ? 'selected':'' %>>Silver</option>
+        <option value="gold"     <%= card.card_level==='gold'     ? 'selected':'' %>>Gold</option>
+        <option value="platinum" <%= card.card_level==='platinum' ? 'selected':'' %>>Platinum</option>
+      </select>
+      <button class="btn" type="submit">Update Level</button>
+    </form>
+  </div>
+
+  <div class="form-card" style="margin-bottom:1.5rem">
+    <p style="font-size:13px;color:#555;margin-bottom:0.8rem">Manually adjust points</p>
+    <form method="POST" action="/customers/<%= customer.customer_id %>/card/points"
+          style="display:flex;gap:8px;align-items:center">
+      <input type="number" name="delta" placeholder="e.g. +100 or -50"
+             style="width:140px;padding:7px 10px;border:0.5px solid #ccc;border-radius:6px;font-size:14px">
+      <button class="btn" type="submit">Apply</button>
+    </form>
+  </div>
+<% } %>
+
+<h2>Order History</h2>
+<% if (!orders.length) { %>
+  <p style="color:#888;font-size:14px">No orders yet.</p>
+<% } else { %>
+<table>
+  <thead>
+    <tr><th>ID</th><th>Date</th><th>Type</th><th>Status</th><th>Total</th><th>Final</th><th>Pts Earned</th><th>Pts Used</th></tr>
+  </thead>
+  <tbody>
+    <% orders.forEach(o => { %>
+    <tr>
+      <td><a href="/orders/<%= o.order_id %>"><%= o.order_id %></a></td>
+      <td><%= new Date(o.order_time).toLocaleDateString() %></td>
+      <td><%= o.order_type %></td>
+      <td><span class="badge badge-<%= o.order_status %>"><%= o.order_status %></span></td>
+      <td>€<%= o.total_amount %></td>
+      <td>€<%= o.final_amount %></td>
+      <td><%= o.points_earned %></td>
+      <td><%= o.points_used %></td>
+    </tr>
+    <% }) %>
+  </tbody>
+</table>
+<% } %>
+<%- include('../partials/footer') %>

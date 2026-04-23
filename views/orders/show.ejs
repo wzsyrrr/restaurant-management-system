@@ -1,0 +1,54 @@
+<%- include('../partials/header') %>
+<a href="/orders">← Back</a>
+<h1>Order #<%= order.order_id %></h1>
+
+<div class="detail-card">
+  <p><strong>Customer:</strong> <a href="/customers/<%= order.customer_id %>"><%= order.customer_name %></a></p>
+  <p><strong>Restaurant:</strong> <%= order.restaurant_name %></p>
+  <p><strong>Type:</strong> <%= order.order_type %></p>
+  <p><strong>Status:</strong> <span class="badge badge-<%= order.order_status %>"><%= order.order_status %></span></p>
+  <% if (order.platform_name) { %><p><strong>Platform:</strong> <%= order.platform_name %></p><% } %>
+  <% if (order.card_level) { %>
+  <p><strong>Card:</strong> <%= order.card_level %> |
+     Earned: <%= order.points_earned %> pts |
+     Used: <%= order.points_used %> pts |
+     Deduction: €<%= order.deduction_amount %>
+  </p>
+  <% } %>
+  <p><strong>Total:</strong> €<%= order.total_amount %> &nbsp; <strong>Final:</strong> €<%= order.final_amount %></p>
+  <p><strong>Time:</strong> <%= new Date(order.order_time).toLocaleString() %></p>
+</div>
+
+<% if (!['completed','cancelled'].includes(order.order_status)) { %>
+<div style="display:flex;gap:8px;margin-bottom:1.5rem;flex-wrap:wrap">
+  <% const flow = {pending:'confirmed', confirmed:'preparing', preparing:'ready', ready:'completed'};
+     const next = flow[order.order_status]; %>
+  <% if (next) { %>
+  <form method="POST" action="/orders/<%= order.order_id %>/status">
+    <input type="hidden" name="status" value="<%= next %>">
+    <button class="btn" type="submit">→ Mark as <%= next %></button>
+  </form>
+  <% } %>
+  <form method="POST" action="/orders/<%= order.order_id %>/cancel"
+        onsubmit="return confirm('Cancel this order?')">
+    <button class="btn btn-danger" type="submit">Cancel Order</button>
+  </form>
+</div>
+<% } %>
+
+<h2>Items</h2>
+<table>
+  <thead><tr><th>Product</th><th>Category</th><th>Qty</th><th>Unit Price</th><th>Subtotal</th></tr></thead>
+  <tbody>
+    <% items.forEach(i => { %>
+    <tr>
+      <td><%= i.product_name %></td>
+      <td><%= i.category %></td>
+      <td><%= i.quantity %></td>
+      <td>€<%= i.unit_price %></td>
+      <td>€<%= i.subtotal %></td>
+    </tr>
+    <% }) %>
+  </tbody>
+</table>
+<%- include('../partials/footer') %>

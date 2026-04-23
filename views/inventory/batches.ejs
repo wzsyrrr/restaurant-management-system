@@ -1,0 +1,41 @@
+<%- include('../partials/header') %>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+  <h1 style="margin:0">Inventory Batches</h1>
+  <a href="/inventory" class="btn" style="background:#555">← Inventory</a>
+</div>
+<table>
+  <thead>
+    <tr>
+      <th>Batch ID</th><th>Restaurant</th><th>Material</th><th>Unit</th>
+      <th>Received</th><th>Remaining</th><th>Inbound</th><th>Expiry</th>
+      <th>Status</th><th>Purchase</th><th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% batches.forEach(b => { %>
+    <tr class="<%= b.batch_status === 'pending_disposal' ? 'row-warning' : b.batch_status === 'disposed' || b.batch_status === 'depleted' ? 'row-muted' : '' %>">
+      <td><%= b.batch_id %></td>
+      <td><%= b.restaurant_name %></td>
+      <td><%= b.material_name %></td>
+      <td><%= b.unit %></td>
+      <td><%= b.received_quantity %></td>
+      <td><%= b.remaining_quantity %></td>
+      <td><%= b.inbound_date %></td>
+      <td><%= b.expiry_date || '-' %></td>
+      <td><span class="badge badge-<%= b.batch_status %>"><%= b.batch_status %></span></td>
+      <td><a href="/inventory/purchases">#<%= b.purchase_id %></a></td>
+      <td>
+        <% if (b.batch_status === 'pending_disposal') { %>
+        <form method="POST" action="/inventory/batch/<%= b.batch_id %>/dispose"
+              onsubmit="return confirm('Dispose batch #<%= b.batch_id %>? This cannot be undone.')">
+          <button class="btn btn-sm btn-danger" type="submit">Dispose</button>
+        </form>
+        <% } else { %>
+        -
+        <% } %>
+      </td>
+    </tr>
+    <% }) %>
+  </tbody>
+</table>
+<%- include('../partials/footer') %>

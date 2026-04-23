@@ -1,0 +1,47 @@
+<%- include('../partials/header') %>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+  <h1 style="margin:0">Products</h1>
+  <a href="/products/new" class="btn">+ Add Product</a>
+</div>
+<table>
+  <thead>
+    <tr>
+      <th>ID</th><th>Name</th><th>Category</th><th>Price</th>
+      <th>Listed</th><th>Downtown</th><th>Airport</th><th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% products.forEach(p => { %>
+    <tr>
+      <td><a href="/products/<%= p.product_id %>"><%= p.product_id %></a></td>
+      <td><%= p.product_name %></td>
+      <td><%= p.category %></td>
+      <td>€<%= p.price %></td>
+      <td><span class="badge badge-<%= p.listing_status %>"><%= p.listing_status %></span></td>
+      <td>
+        <% if (p.downtown_status) { %>
+          <span class="badge badge-<%= p.downtown_status %>"><%= p.downtown_status %></span>
+        <% } else { %>-<% } %>
+      </td>
+      <td>
+        <% if (p.airport_status) { %>
+          <span class="badge badge-<%= p.airport_status %>"><%= p.airport_status %></span>
+        <% } else { %>-<% } %>
+      </td>
+      <td style="display:flex;gap:6px">
+        <a href="/products/<%= p.product_id %>/edit" class="btn btn-sm" style="background:#555">Edit</a>
+        <form method="POST" action="/products/<%= p.product_id %>/toggle" style="display:inline">
+          <button class="btn btn-sm btn-warning" type="submit">
+            <%= p.listing_status === 'listed' ? 'Unlist' : 'Relist' %>
+          </button>
+        </form>
+        <form method="POST" action="/products/<%= p.product_id %>/delete" style="display:inline"
+              onsubmit="return confirm('Delete <%= p.product_name %>?')">
+          <button class="btn btn-sm btn-danger" type="submit">Delete</button>
+        </form>
+      </td>
+    </tr>
+    <% }) %>
+  </tbody>
+</table>
+<%- include('../partials/footer') %>

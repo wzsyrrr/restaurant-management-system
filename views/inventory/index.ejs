@@ -1,0 +1,36 @@
+<%- include('../partials/header') %>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+  <h1 style="margin:0">Inventory</h1>
+  <a href="/inventory/purchases" class="btn">View Purchases</a>
+  <a href="/inventory/batches" class="btn" style="background:#555">View Batches</a>
+</div>
+<table>
+  <thead>
+    <tr>
+      <th>Restaurant</th><th>Material</th><th>Unit</th>
+      <th>Remaining</th><th>Earliest Expiry</th><th>Batches</th><th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% inventory.forEach(i => { %>
+    <tr class="<%= i.urgency == 3 ? 'row-warning' : '' %>">
+      <td><%= i.restaurant_name %></td>
+      <td><%= i.material_name %></td>
+      <td><%= i.unit %></td>
+      <td><%= i.total_remaining %></td>
+      <td><%= i.earliest_expiry || '-' %></td>
+      <td><%= i.batch_count %></td>
+      <td>
+        <% if (i.urgency == 3) { %>
+          <span class="badge badge-near_expiry">near expiry</span>
+        <% } else if (i.urgency == 2) { %>
+          <span class="badge badge-temporarily_sold_out">pending disposal</span>
+        <% } else { %>
+          <span class="badge badge-available">ok</span>
+        <% } %>
+      </td>
+    </tr>
+    <% }) %>
+  </tbody>
+</table>
+<%- include('../partials/footer') %>

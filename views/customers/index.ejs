@@ -1,0 +1,36 @@
+<%- include('../partials/header') %>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+  <h1 style="margin:0">Customers</h1>
+  <a href="/customers/new" class="btn">+ Add Customer</a>
+</div>
+<table>
+  <thead>
+    <tr><th>ID</th><th>Name</th><th>Phone</th><th>Email</th><th>Card Level</th><th>Points</th><th>Card Status</th><th>Actions</th></tr>
+  </thead>
+  <tbody>
+    <% customers.forEach(c => { %>
+    <tr>
+      <td><a href="/customers/<%= c.customer_id %>"><%= c.customer_id %></a></td>
+      <td><%= c.customer_name %></td>
+      <td><%= c.phone || '-' %></td>
+      <td><%= c.email || '-' %></td>
+      <td>
+        <% if (c.card_level) { %>
+          <span class="badge badge-<%= c.card_level %>"><%= c.card_level %></span>
+        <% } else { %>-<% } %>
+      </td>
+      <td><%= c.points_balance != null ? c.points_balance : '-' %></td>
+      <td>
+        <% if (c.card_status) { %>
+          <span class="badge badge-<%= c.card_status %>"><%= c.card_status %></span>
+        <% } else { %>-<% } %>
+      </td>
+      <td style="display:flex;gap:6px">
+        <a href="/customers/<%= c.customer_id %>" class="btn btn-sm">View</a>
+        <a href="/customers/<%= c.customer_id %>/edit" class="btn btn-sm" style="background:#555">Edit</a>
+      </td>
+    </tr>
+    <% }) %>
+  </tbody>
+</table>
+<%- include('../partials/footer') %>

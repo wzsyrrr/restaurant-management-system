@@ -1,0 +1,22 @@
+<%- include('../partials/header') %>
+<a href="/suppliers">← Back</a>
+<h1>Add New Supplier</h1>
+<% if (error) { %><div class="alert"><%= error %></div><% } %>
+<div class="form-card">
+  <form method="POST" action="/suppliers">
+    <div class="form-group">
+      <label>Supplier Name</label>
+      <input type="text" name="supplier_name" required placeholder="e.g. Fresh Farm Co.">
+    </div>
+    <div class="form-group">
+      <label>Contact Person</label>
+      <input type="text" name="contact_person" placeholder="e.g. Li Wei">
+    </div>
+    <div class="form-group">
+      <label>Phone</label>
+      <input type="text" name="phone" placeholder="e.g. 139-0001-0001">
+    </div>
+    <button type="submit" class="btn">Save Supplier</button>
+  </form>
+</div>
+<%- include('../partials/footer') %>

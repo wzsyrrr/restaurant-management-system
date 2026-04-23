@@ -1,0 +1,30 @@
+<%- include('../partials/header') %>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+  <h1 style="margin:0">Materials</h1>
+  <a href="/materials/new" class="btn">+ Add Material</a>
+</div>
+<% if (locals.error) { %><div class="alert"><%= error %></div><% } %>
+<table>
+  <thead>
+    <tr><th>ID</th><th>Name</th><th>Unit</th><th>Used in Products</th><th>Purchase Count</th><th>Actions</th></tr>
+  </thead>
+  <tbody>
+    <% materials.forEach(m => { %>
+    <tr>
+      <td><%= m.material_id %></td>
+      <td><%= m.material_name %></td>
+      <td><%= m.unit %></td>
+      <td><%= m.used_in_products %></td>
+      <td><%= m.purchase_count %></td>
+      <td style="display:flex;gap:6px">
+        <a href="/materials/<%= m.material_id %>/edit" class="btn btn-sm" style="background:#555">Edit</a>
+        <form method="POST" action="/materials/<%= m.material_id %>/delete" style="display:inline"
+              onsubmit="return confirm('Delete <%= m.material_name %>?')">
+          <button class="btn btn-sm btn-danger" type="submit">Delete</button>
+        </form>
+      </td>
+    </tr>
+    <% }) %>
+  </tbody>
+</table>
+<%- include('../partials/footer') %>

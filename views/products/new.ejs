@@ -1,0 +1,42 @@
+<%- include('../partials/header') %>
+<a href="/products">← Back</a>
+<h1>Add New Product</h1>
+<% if (error) { %><div class="alert"><%= error %></div><% } %>
+<div class="form-card">
+  <form method="POST" action="/products">
+    <div class="form-group">
+      <label>Menu</label>
+      <select name="menu_id" required>
+        <% menus.forEach(m => { %>
+        <option value="<%= m.menu_id %>"><%= m.menu_name %></option>
+        <% }) %>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Product Name</label>
+      <input type="text" name="product_name" required placeholder="e.g. Matcha Lava Cake">
+    </div>
+    <div class="form-group">
+      <label>Price (€)</label>
+      <input type="number" name="price" step="0.01" min="0" required placeholder="e.g. 28.00">
+    </div>
+    <div class="form-group">
+      <label>Category</label>
+      <select name="category">
+        <option value="Main">Main</option>
+        <option value="Side">Side</option>
+        <option value="Dessert">Dessert</option>
+        <option value="Drink">Drink</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Listing Status</label>
+      <select name="listing_status">
+        <option value="listed">Listed</option>
+        <option value="unlisted">Unlisted</option>
+      </select>
+    </div>
+    <button type="submit" class="btn">Save Product</button>
+  </form>
+</div>
+<%- include('../partials/footer') %>
