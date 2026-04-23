@@ -56,7 +56,7 @@ Finally, when an order reaches completed status, the database automatically upda
 ### ER Diagram
 
 <p align="center">
-  <img src="images/er d.png" alt="ER Diagram" width="950">
+  <img src="images/erd.png" alt="ER Diagram" width="950">
 </p>
 
 ---
